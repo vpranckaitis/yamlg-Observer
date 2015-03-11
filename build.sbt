@@ -20,8 +20,7 @@ lazy val dependencies = Seq(
   libraryDependencies += "io.spray" %% "spray-routing" % "1.3.1",
   libraryDependencies += "io.spray" %% "spray-can" % "1.3.1",
   
-  libraryDependencies += "org.scalanlp" %% "breeze" % "0.11.1",
-  libraryDependencies += "org.scalanlp" %% "breeze-natives" % "0.11.1"
+  libraryDependencies +=  "org.scalaj" %% "scalaj-http" % "1.1.4"
 )
 
 lazy val dependenciesTest = Seq(
