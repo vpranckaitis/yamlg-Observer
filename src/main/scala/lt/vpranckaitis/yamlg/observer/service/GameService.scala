@@ -1,10 +1,9 @@
 package lt.vpranckaitis.yamlg.observer.service
 
 import scala.annotation.tailrec
-
 import lt.vpranckaitis.yamlg.game.Board
 import lt.vpranckaitis.yamlg.observer.repository.{GameRepository, RedisGameRepository}
-import lt.vpranckaitis.yamlg.observer.dto.{Board => BoardDTO}
+import lt.vpranckaitis.yamlg.observer.dto
 import scalaj.http.Http
 
 class GameService {
@@ -28,7 +27,12 @@ class GameService {
     }
     val (boards, winner) = gameTR()
     val gameId = repository.createGame()
-    repository.saveGame(gameId, boards map { b => BoardDTO(b.board) })
+    repository.saveGame(gameId, boards map { b => dto.Board(b.board) })
     (boards, winner)
+  }
+  
+  def makeMove(b: dto.Board): dto.BoardWithMoves = {
+    val b1 = Board(Http("http://localhost:5555/move/" + b.board).asString.body)
+    dto.BoardWithMoves(b1.board, b1.availableMoves)
   }
 }
