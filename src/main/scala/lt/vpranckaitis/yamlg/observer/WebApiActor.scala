@@ -1,10 +1,13 @@
 package lt.vpranckaitis.yamlg.observer
 
+import lt.vpranckaitis.yamlg.observer.service.GameService
+import spray.httpx.SprayJsonSupport.{sprayJsonMarshaller, sprayJsonUnmarshaller}
+import spray.httpx.marshalling.ToResponseMarshallable.isMarshallable
+import spray.routing.Directive.pimpApply
 import spray.routing.HttpServiceActor
+import lt.vpranckaitis.yamlg.observer.dto.ExtendedJsonProtocol._
+import lt.vpranckaitis.yamlg.game.Board
 import scalaj.http.Http
-import scala.annotation.tailrec
-import lt.vpranckaitis.yamlg.observer.service.GameService
-import lt.vpranckaitis.yamlg.observer.service.GameService
 
 class WebApiActor extends HttpServiceActor {
   
@@ -17,10 +20,13 @@ class WebApiActor extends HttpServiceActor {
         complete(result._1.size + "\n" + (result._1 mkString "\n"))
       }
     } ~
-    path("move" / Segment) { b =>
-      get {
-        val resp = Http("http://localhost:5555/move/" + b).asString
-        complete(resp.body)
+    path("move" / Segment) { id =>
+      post {
+        entity(as[dto.Board]) { b =>
+          val resp = Board(Http("http://localhost:5555/move/" + b.board).asString.body)
+          complete(dto.BoardWithMoves(resp.board, resp.availableMoves))
+          //complete(dto.Board("1111000011110000111100000000000000000000000022220000222200002222".reverse))
+        }
       }
     } ~
     pathEndOrSingleSlash {
