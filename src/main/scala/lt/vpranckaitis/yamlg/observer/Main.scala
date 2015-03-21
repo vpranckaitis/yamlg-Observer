@@ -12,7 +12,7 @@ object Main {
   def main(args: Array[String]) {
     val webApiActor = system.actorOf(Props[WebApiActor])
     
-    IO(Http) ! Http.Bind(webApiActor, interface = "0.0.0.0", port = 80)
+    IO(Http) ! Http.Bind(webApiActor, interface = "0.0.0.0", port = 8080)
     
     Runtime.getRuntime.addShutdownHook(new Thread() {
       override def run() {
