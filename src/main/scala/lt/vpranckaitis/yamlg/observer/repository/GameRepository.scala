@@ -3,15 +3,21 @@ package lt.vpranckaitis.yamlg.observer.repository
 import lt.vpranckaitis.yamlg.observer.dto.GameMetadata
 import lt.vpranckaitis.yamlg.observer.dto.Board
 
-trait GameRepository {
+object GameRepository {
   
   type GameId = Long
   
-  def createGame(): GameId
+}
+
+trait GameRepository {
+  
+  type GameId = GameRepository.GameId
+  
+  def createGame(started: Int): GameId
   def getGameMetadata(gameId: GameId): GameMetadata
   def getMoves(gameId: GameId): Seq[Board]
   def saveMove(gameId: GameId, board: Board)
-  def saveGame(gameId: GameId, boards: Seq[Board])
+  def saveGame(gameId: GameId, started: Int, winner: Int, boards: Seq[Board])
   def finishGame(gameId: GameId, game: GameMetadata)
 
 }

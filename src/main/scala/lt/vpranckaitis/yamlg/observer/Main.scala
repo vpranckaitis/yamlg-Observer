@@ -10,7 +10,7 @@ object Main {
   implicit val system = ActorSystem("yamlg-observer")
   
   def main(args: Array[String]) {
-    val webApiActor = system.actorOf(Props[WebApiActor])
+    val webApiActor = system.actorOf(Props(classOf[WebApiActor], system))
     
     IO(Http) ! Http.Bind(webApiActor, interface = "0.0.0.0", port = 8080)
     

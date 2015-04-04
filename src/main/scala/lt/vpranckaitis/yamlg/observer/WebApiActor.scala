@@ -8,25 +8,53 @@ import spray.routing.HttpServiceActor
 import lt.vpranckaitis.yamlg.observer.dto.ExtendedJsonProtocol._
 import lt.vpranckaitis.yamlg.game.Board
 import scalaj.http.Http
+import akka.actor.ActorSystem
+import scala.util.Success
+import scala.util.Failure
+import scala.util.Success
+import spray.http.StatusCodes._
 
-class WebApiActor extends HttpServiceActor {
+class WebApiActor(implicit system: ActorSystem) extends HttpServiceActor {
+  
+  import system.dispatcher
   
   val service = new GameService()
   
   def receive = runRoute {
-    path("game" / "cpu" / IntNumber) { n =>
+    pathPrefix("game") {
+      pathEndOrSingleSlash {
+        post {
+          entity(as[dto.GameSetup]) { game =>
+            onComplete(service.createGame(game)) {
+              case Success(b) => complete(Created, b)
+              case _ => complete(InternalServerError, "failed")
+            }
+          }
+        }
+      } ~
+      path(LongNumber / "move") { gameId =>
+        post {
+          entity(as[dto.Board]) { b =>
+            onComplete(service.makeMove(b, gameId)) {
+              case Success(b) => complete(b)
+              case _ => complete(InternalServerError, "failed")
+            }
+          }
+        }
+      } ~
+      path(LongNumber / "learn") { gameId =>
+        put {
+          onComplete(service.learnGame(gameId)) {
+            case Success(b) => complete(b)
+            case _ => complete(InternalServerError, "failed")
+          }
+        }
+      } 
+    } ~
+    path("cpugame" / IntNumber) { n =>
       get {
         val result = service.cpuVsCpuGame()
-        complete(result._1.size + "\n" + (result._1 mkString "\n"))
-      }
-    } ~
-    path("move" / Segment) { id =>
-      post {
-        entity(as[dto.Board]) { b =>
-          val resp = Board(Http("http://localhost:5555/move/" + b.board).asString.body)
-          complete(dto.BoardWithMoves(resp.board, resp.availableMoves))
-          //complete(dto.Board("1111000011110000111100000000000000000000000022220000222200002222".reverse))
-        }
+        complete(result)
       }
     } ~
     pathEndOrSingleSlash {
