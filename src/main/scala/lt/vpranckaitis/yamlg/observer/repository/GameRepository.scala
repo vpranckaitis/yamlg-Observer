@@ -13,11 +13,11 @@ trait GameRepository {
   
   type GameId = GameRepository.GameId
   
-  def createGame(started: Int): GameId
+  def startGame(started: Int): GameId
   def getGameMetadata(gameId: GameId): GameMetadata
   def getMoves(gameId: GameId): Seq[Board]
   def saveMove(gameId: GameId, board: Board)
   def saveGame(gameId: GameId, started: Int, winner: Int, boards: Seq[Board])
-  def finishGame(gameId: GameId, game: GameMetadata)
+  def finishGame(gameId: GameId, winner: Int)
 
 }

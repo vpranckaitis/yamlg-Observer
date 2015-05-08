@@ -8,6 +8,9 @@ object Board {
   val height = 8
   val size = width * height
   
+  val CPU = 1
+  val PLAYER = 2
+  
   val moves = List((0, -1), (0, 1), (-1, 0), (1, 0))
   
   def posToCoord(p: Int) = (p % width, p / width)

@@ -49,12 +49,22 @@ class WebApiActor(implicit system: ActorSystem) extends HttpServiceActor {
             case _ => complete(InternalServerError, "failed")
           }
         }
+      } ~
+      path("learn") {
+        put {
+          onComplete(service.learnGames()) {
+            case Success(b) => complete(b)
+            case _ => complete(InternalServerError, "failed")
+          }
+        }
       } 
     } ~
     path("cpugame" / IntNumber) { n =>
       get {
-        val result = service.cpuVsCpuGame()
-        complete(result)
+        onComplete(service.cpuVsCpuGame(n)) {
+          case Success(b) => complete(b)
+          case _ => complete(InternalServerError, "failed")
+        }
       }
     } ~
     pathEndOrSingleSlash {

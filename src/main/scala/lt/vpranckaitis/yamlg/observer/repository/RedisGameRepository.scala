@@ -11,7 +11,7 @@ import scala.collection.JavaConverters._
 class RedisGameRepository extends GameRepository {
   private[this] val redis = new Pool(new JedisPool("localhost", 6379))
   
-  def createGame(started: Int): GameId = {
+  def startGame(started: Int): GameId = {
     redis withClient { j =>
       val gameId = j.incr(Keys.lastGameId)
       val metadata = Map(Keys.startedField -> started.toString,
@@ -23,7 +23,8 @@ class RedisGameRepository extends GameRepository {
   def getGameMetadata(gameId: GameId): GameMetadata = {
     redis withClient { j =>
       val metadata = j.hgetAll(Keys.game(gameId))
-      GameMetadata(gameId, metadata(Keys.startedField).toInt, metadata(Keys.winnerField).toInt)
+      val turns = metadata.getOrElse(Keys.turnsField, j.llen(Keys.moves(gameId)).toString).toInt
+      GameMetadata(gameId, metadata(Keys.startedField).toInt, metadata(Keys.winnerField).toInt, turns)
     }
   }
   
@@ -44,13 +45,17 @@ class RedisGameRepository extends GameRepository {
       
       val metadata = Map(Keys.startedField -> started.toString,
                          Keys.winnerField -> winner.toString,
-                         Keys.movesField -> boards.size.toString);
+                         Keys.turnsField -> boards.size.toString);
       p.hmset(Keys.game(gameId), metadata.asJava)
       p.sync()
     }
   }
-  def finishGame(gameId: GameId, game: GameMetadata) {
-    
+  def finishGame(gameId: GameId, winner: Int) {
+    redis withClient { j =>
+      val turns = j.llen(Keys.moves(gameId))
+      val metadata = Map(Keys.turnsField -> turns.toString, Keys.winnerField -> winner.toString)
+      j.hmset(Keys.game(gameId), metadata.asJava)
+    }
   }
   
   object Keys {
@@ -61,7 +66,7 @@ class RedisGameRepository extends GameRepository {
     
     val startedField = "started"
     val winnerField = "winner"
-    val movesField = "moves"
+    val turnsField = "turns"
     
     val lastGameId = gameSegment + separator + lastIdSegment
     def game(gameId: GameId) = gameSegment + separator + gameId.toString()
