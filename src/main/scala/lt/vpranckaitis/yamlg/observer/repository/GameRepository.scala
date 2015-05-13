@@ -13,7 +13,7 @@ trait GameRepository {
   
   type GameId = GameRepository.GameId
   
-  def startGame(started: Int): GameId
+  def startGame(started: Int, botId1: Int, botId2: Option[Int] = None): GameId
   def getGameMetadata(gameId: GameId): GameMetadata
   def getMoves(gameId: GameId): Seq[Board]
   def saveMove(gameId: GameId, board: Board)
