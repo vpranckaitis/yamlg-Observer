@@ -99,17 +99,15 @@ class RedisRepository extends GameRepository with UserRepository {
   }
   
   def getLastGame(email: String): Option[GameId] = {
-    println(email)
     redis withClient { j =>
       j.lindex(Keys.userGames(email), -1) match {
         case null => None
-        case s => { println(s); Some(s.toLong) }
+        case s => Some(s.toLong)
       }
     }
   }
   
   def getGames(email: String): Seq[GameId] = {
-    println(email)
     redis withClient { j =>
       j.lrange(Keys.userGames(email), 0, -1) map { _.toLong }
     }
@@ -118,7 +116,6 @@ class RedisRepository extends GameRepository with UserRepository {
   def assignGame(gameId: GameId, sessionId: String) {
     for (email <- getUserEmail(sessionId)) {
       redis withClient { j =>
-        println("assignGame")
         j.rpush(Keys.userGames(email), gameId.toString)
       }
     }

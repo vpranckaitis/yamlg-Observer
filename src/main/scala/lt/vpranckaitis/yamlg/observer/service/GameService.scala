@@ -73,7 +73,7 @@ class GameService(implicit system: ActorSystem) {
       		repository.saveGame(gameId, 1, winner, boards map { b => dto.Board(b.board) })
       		(boards, winner)
         } catch {
-          case e: Throwable => println(e)
+          case e: Throwable => {}
         }
       }
     } 
@@ -104,7 +104,7 @@ class GameService(implicit system: ActorSystem) {
   }
   
   def createGame(game: dto.GameSetup): Future[dto.BoardWithMoves] = {
-    val bot = repository.getBots() filter { _.difficulty == game.difficulty } head
+    val bot = repository.getBots() filter { b => b.alive && (b.difficulty == game.difficulty) } head
     val gameId = repository.startGame(if (game.playerFirst) Board.PLAYER else Board.CPU, bot.id.get)
     
     for (botId <- bot.id) repository.assignBotGame(gameId, botId)
@@ -160,7 +160,6 @@ class GameService(implicit system: ActorSystem) {
   
   private def createLoginResponse(session: String, email: String) = {
     val boardWithMoves = repository.getLastGame(email) map { gameId => 
-      println(gameId)
       val moves = repository.getMoves(gameId)
       val board: Board = if (moves.isEmpty) {
         Board.initial
@@ -181,10 +180,10 @@ class GameService(implicit system: ActorSystem) {
   def getStatistics(sessionId: String) = {
     Future {
       repository.getUserEmail(sessionId) match {
-        case None => { println("failed session"); dto.Statistics(0, 0, 0) }  
+        case None =>  dto.Statistics(0, 0, 0)
         case Some(email) => {
           repository.getGames(email) match {
-            case list: Seq[Long] if (list.size == 0) => { println("no"); dto.Statistics(0, 0, 0) }
+            case list: Seq[Long] if (list.size == 0) => dto.Statistics(0, 0, 0)
             case list: Seq[Long] => {
               val metadatas = list map { id => repository.getGameMetadata(id) }
               val finishedGames = metadatas filterNot { _.winner == 0 } map { _.turns }
@@ -251,7 +250,7 @@ class GameService(implicit system: ActorSystem) {
   
   def getDifficulties(): Future[List[Int]] = {
     Future {
-      val r = { repository.getBots() map { _.difficulty } }
+      val r = repository.getBots() withFilter { _.alive } map { _.difficulty } 
       r.distinct.sorted 
     }
   }

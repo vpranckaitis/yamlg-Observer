@@ -17,5 +17,6 @@ project/plugins/project/
 .worksheet
 /bin/
 /.settings
-/project
+/project/*
+!/project/assembly.sbt
 /ui/*
