@@ -88,6 +88,14 @@ class AdminApiActor(implicit system: ActorSystem) extends HttpServiceActor {
         }
       }
     } ~
+    path("bots" / IntNumber / "learnall") { botId =>
+      put {
+        onComplete(service.learnGames(botId)) {
+          case Success(v) => complete(v)
+          case Failure(ex) => complete(NotFound, "Bot not found")
+        }
+      }
+    } ~
     path("botgame") {
       post {
         entity(as[BotGameSetup]) { gameSetup =>

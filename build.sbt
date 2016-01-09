@@ -15,9 +15,7 @@ lazy val repositories =  Seq(
 
 lazy val dependencies = Seq(
   libraryDependencies += "redis.clients" % "jedis" % "2.6.2",
-  
   libraryDependencies += "com.typesafe.akka" %% "akka-actor" % "2.3.9",
-  
   libraryDependencies += "io.spray" %% "spray-routing" % "1.3.2",
   libraryDependencies += "io.spray" %% "spray-can" % "1.3.2",
   libraryDependencies += "io.spray" %% "spray-client" % "1.3.1",

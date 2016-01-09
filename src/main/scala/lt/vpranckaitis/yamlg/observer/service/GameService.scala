@@ -127,6 +127,21 @@ class GameService(implicit system: ActorSystem) {
       Future("No winner")
     }
   }
+
+  def learnGames(botId: Int): Future[String] = {
+    val bot = repository.getBot(botId)
+    val url = s"http://${bot.ip}:${bot.port}/learn/game"
+    val gameIds = Range(1, repository.getLastGameId.toInt)
+    for (gameId <- gameIds) {
+      val metadata = repository.getGameMetadata(gameId)
+      val moves = repository.getMoves(gameId)
+      if (metadata.winner == 1 || metadata.winner == 2) {
+        val game = dto.Game(gameId, metadata.started, metadata.winner, moves.toList)
+        pipeline(Put(url, game)).map { _.toString }
+      }
+    }
+    Future("{\"aknowledged\":true}")
+  }
   
   def learnGames(botId: Int, gameIds: Seq[Long]): Future[String] = {
     val bot = repository.getBot(botId)
